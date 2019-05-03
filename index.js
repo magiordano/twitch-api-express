@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 const port = 5000
 //const bodyParser = require('body-parser')
 const monk = require('monk')
-const url = '';
+const url = ''
 var schedule = require('node-schedule');
 
 
@@ -45,7 +45,7 @@ db.then(() => {
     console.log('Connected correctly to server')
   })
   //fetch twitch api every hour
-  schedule.scheduleJob('0 * * * *',async function(){
+  schedule.scheduleJob('0 * * * * *',async function(){
     
     let today = new Date();
     let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate() +" "+ today.getHours() +":"+today.getMinutes();
@@ -78,7 +78,7 @@ for(let i = 0; i < arr2.data.length; i++){
 let combine = first100.concat(second100);
 
 combineData(combine);
-
+console.log(date)
 collection.insert(map)
 .then((docs) => {
 
