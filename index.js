@@ -7,9 +7,6 @@ const monk = require('monk')
 const url = 'mongodb://mag:3VZsQPNVkZ8aIGSc@cluster0-shard-00-00-z1he2.mongodb.net:27017,cluster0-shard-00-01-z1he2.mongodb.net:27017,cluster0-shard-00-02-z1he2.mongodb.net:27017/twitch_users?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin&retryWrites=true'
 var schedule = require('node-schedule');
 
-
-let first100 = [];
-let second100 = [];
 let pagination;
 
 finalArr= [];
@@ -28,11 +25,13 @@ let streamList = [];
 
 
 //function to create the map structure to be stored in mongo
-function combineData(arr){
+function storeData(arr){
 
 
 //iterate through array from twitch api and push object to an array
 for (let i =0; i<arr.length; i++){
+//query check if exists
+
 const stream = new Object()
 stream.user_name = arr[i].user_name
 stream.viewer_count = arr[i].viewer_count
@@ -82,8 +81,8 @@ let arr2 = await fetch('https://api.twitch.tv/helix/streams/?first=100&after=' +
     }, 
 })
 .then(res => res.json())
-
-combineData(combine);
+let combine = arr.concat(arr2)
+storeData(combine);
 console.log(date)
 collection.insert([{hour1: map}, {date: '123'}])
 .then((docs) => {
