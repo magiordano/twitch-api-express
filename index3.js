@@ -11,12 +11,12 @@ db.then(() => {
     console.log('Connected correctly to server')
   })
   
-collection = db.get('5/3');
+collection = db.get('test');
 
 
 app.get('/',(req, res) =>{
-    collection.find({}, {user_name: 'sodapoppin'}).then((docs) => {
-      console.log(docs)
+    collection.find({user_id:"137512364"}).then((docs) => {
+      console.log(docs[0].data)
     })
 
     res.send("success")

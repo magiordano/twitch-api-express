@@ -26,42 +26,44 @@ let streamList = [];
 
 //function to create the map structure to be stored in mongo
 function storeData(arr){
-
-
+for(let i=0;  i<1; i++){
+  collection.find({user_id:"137512364"}).then((docs) => {
+    if (docs !== ""){
+      collection.update({user_id: '137512364'}, {$push: {data : 'push something'}})
+    }
+  })
+}
+}
 //iterate through array from twitch api and push object to an array
-for (let i =0; i<1; i++){
-//query check if exists
-let stream = new Object()
-stream.user_name = arr[i].user_name
-stream.user_id = arr[1].user_id
-//stream.viewer_count = arr[i].viewer_count
-stream.title = arr[i].title
-stream.data = "{'viewer_count': " + arr[i].viewer_count + "}, {'title': " + arr[i].title + "}, {'date': " + new Date() + "}"
-console.log("insert")
-collection.insert(stream)
-.then((docs) => {
-  // docs contains the documents inserted with added **_id** fields
-  // Inserted 3 documents into the document collection
-}).catch((err) => {
-  // An error happened while inserting
-}).then(() => db.close())
+// for (let i =0; i<100; i++){
+// //query check if exists
+// let stream = new Object()
+// stream.user_name = arr.data[i].user_name
+// stream.user_id = arr.data[i].user_id
+// //stream.viewer_count = arr[i].viewer_count
+// stream.title = arr.data[i].title
+// stream.data= ["{'viewer_count': " + arr.data[i].viewer_count + "}, {'title': " + arr.data[i].title + "}, {'date': " + new Date() + "}"]
+// console.log("insert")
+// collection.insert(stream)
+// .then((docs) => {
+//   // docs contains the documents inserted with added **_id** fields
+//   // Inserted 3 documents into the document collection
+// }).catch((err) => {
+//   // An error happened while inserting
+// }).then(() => db.close())
 
-}
-//set the map to current date as key and the array created as the value
+// }
+// //set the map to current date as key and the array created as the value
 
-}
+
 
 db.then(() => {
     console.log('Connected correctly to server')
   })
 
-
   //fetch twitch api every hour
   schedule.scheduleJob('0 * * * * *',async function(){
     
-    let today = new Date();
-    let date = today.getHours();
-    date = date.toString();
 
     let arr = await fetch('https://api.twitch.tv/helix/streams/?first=100', {
       method: 'get',
