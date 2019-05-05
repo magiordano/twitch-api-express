@@ -29,15 +29,23 @@ function storeData(arr){
 
 
 //iterate through array from twitch api and push object to an array
-for (let i =0; i<arr.length; i++){
+for (let i =0; i<1; i++){
 //query check if exists
-
-const stream = new Object()
+let stream = new Object()
 stream.user_name = arr[i].user_name
 stream.user_id = arr[1].user_id
 //stream.viewer_count = arr[i].viewer_count
 stream.title = arr[i].title
-stream.data = {'viewer_count': arr[i].viewer_count}, {'title': arr[i].title}, {'date': new Date()}
+stream.data = "{'viewer_count': " + arr[i].viewer_count + "}, {'title': " + arr[i].title + "}, {'date': " + new Date() + "}"
+console.log("insert")
+collection.insert(stream)
+.then((docs) => {
+  // docs contains the documents inserted with added **_id** fields
+  // Inserted 3 documents into the document collection
+}).catch((err) => {
+  // An error happened while inserting
+}).then(() => db.close())
+
 }
 //set the map to current date as key and the array created as the value
 
@@ -47,15 +55,6 @@ db.then(() => {
     console.log('Connected correctly to server')
   })
 
-  
-
-  collection.insert({testdate: date})
-.then((docs) => {
-
-}).catch((err) => {
-// An error happened while inserting
-}).then(() => db.close())
-  
 
   //fetch twitch api every hour
   schedule.scheduleJob('0 * * * * *',async function(){
@@ -81,15 +80,9 @@ let arr2 = await fetch('https://api.twitch.tv/helix/streams/?first=100&after=' +
     }, 
 })
 .then(res => res.json())
-let combine = arr.concat(arr2)
-storeData(combine);
-console.log(date)
-collection.insert([{hour1: map}, {date: '123'}])
-.then((docs) => {
 
-}).catch((err) => {
-// An error happened while inserting
-}).then(() => db.close())
+storeData(arr);
+storeData(arr2);
     });
 
 
