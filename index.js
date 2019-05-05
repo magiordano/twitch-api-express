@@ -4,20 +4,26 @@ const fetch = require('node-fetch');
 const port = 5000
 //const bodyParser = require('body-parser')
 const monk = require('monk')
-const url = ''
+const url = 'mongodb://mag:3VZsQPNVkZ8aIGSc@cluster0-shard-00-00-z1he2.mongodb.net:27017,cluster0-shard-00-01-z1he2.mongodb.net:27017,cluster0-shard-00-02-z1he2.mongodb.net:27017/twitch_users?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin&retryWrites=true'
 var schedule = require('node-schedule');
 
 
+let first100 = [];
+let second100 = [];
+let pagination;
+
+finalArr= [];
 //create a new date
 let today = new Date();
-let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate() +" "+ today.getHours() +":"+today.getMinutes();
+let date = today.getHours();
 date = date.toString();
-
+let today2 = new Date();
+let date2 = today.getDay();
+date2= date2.toString
 
 const db = monk(url);
-
+let collection = db.get('test')
 //initialize variables for future 
-let map = new Map ();
 let streamList = [];
 
 
@@ -30,56 +36,56 @@ for (let i =0; i<arr.length; i++){
 const stream = new Object()
 stream.user_name = arr[i].user_name
 stream.viewer_count = arr[i].viewer_count
+stream.title = arr[i].title
 stream.date = new Date ();
 streamList.push(stream);
-
 }
-
-
 //set the map to current date as key and the array created as the value
-map.set(date, streamList)
-
+finalArr.push(map);
 }
 
 db.then(() => {
     console.log('Connected correctly to server')
   })
+
+  
+
+  collection.insert({testdate: date})
+.then((docs) => {
+
+}).catch((err) => {
+// An error happened while inserting
+}).then(() => db.close())
+  
+
   //fetch twitch api every hour
   schedule.scheduleJob('0 * * * * *',async function(){
     
     let today = new Date();
-    let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate() +" "+ today.getHours() +":"+today.getMinutes();
+    let date = today.getHours();
     date = date.toString();
 
     let arr = await fetch('https://api.twitch.tv/helix/streams/?first=100', {
       method: 'get',
       headers: {
-          'Client-ID': ''
+          'Client-ID': '7zkh4ut355tznqbv75vc1dsflxiu0v'
       }, 
   })
   .then(res => res.json())
   
   pagination=arr.pagination.cursor
 
-for(let i = 0; i < arr.data.length; i++){
-first100[i] = {user_name: arr.data[i].user_name, viewer_count: arr.data[i].viewer_count,date: date}
-}
-
 let arr2 = await fetch('https://api.twitch.tv/helix/streams/?first=100&after=' + pagination, {
     method: 'get',
     headers: {
-        'Client-ID': ''
+        'Client-ID': '7zkh4ut355tznqbv75vc1dsflxiu0v'
     }, 
 })
 .then(res => res.json())
-for(let i = 0; i < arr2.data.length; i++){
-    second100[i] = {user_name: arr2.data[i].user_name, viewer_count: arr2.data[i].viewer_count,date: date}
-   }
-let combine = first100.concat(second100);
 
 combineData(combine);
 console.log(date)
-collection.insert(map)
+collection.insert([{hour1: map}, {date: '123'}])
 .then((docs) => {
 
 }).catch((err) => {
@@ -87,10 +93,6 @@ collection.insert(map)
 }).then(() => db.close())
     });
 
-  let collection = db.get('collection')
-  let first100 = [];
-  let second100 = [];
-  let pagination;
 
 
   app.get('/update', async (req, res) => {
