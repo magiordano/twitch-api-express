@@ -34,13 +34,13 @@ for (let i =0; i<arr.length; i++){
 
 const stream = new Object()
 stream.user_name = arr[i].user_name
-stream.viewer_count = arr[i].viewer_count
+stream.user_id = arr[1].user_id
+//stream.viewer_count = arr[i].viewer_count
 stream.title = arr[i].title
-stream.date = new Date ();
-streamList.push(stream);
+stream.data = {'viewer_count': arr[i].viewer_count}, {'title': arr[i].title}, {'date': new Date()}
 }
 //set the map to current date as key and the array created as the value
-finalArr.push(map);
+
 }
 
 db.then(() => {
