@@ -15,6 +15,9 @@ let collection = db.get('collection')
 
 //function to store twitch fetch to mongodb 
 function storeData(arr) {
+ //
+ //add remove function here
+ //
   for (let i = 0; i < arr.data.length; i++) {
     collection.find({
       user_id: arr.data[i].user_id
