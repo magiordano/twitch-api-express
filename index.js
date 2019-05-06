@@ -8,93 +8,91 @@ const url = 'mongodb://mag:3VZsQPNVkZ8aIGSc@cluster0-shard-00-00-z1he2.mongodb.n
 var schedule = require('node-schedule');
 
 let pagination;
-
-finalArr= [];
-//create a new date
-let today = new Date();
-let date = today.getHours();
-date = date.toString();
-let today2 = new Date();
-let date2 = today.getDay();
-date2= date2.toString
-
+let timestamp;
 const db = monk(url);
-let collection = db.get('test')
+let collection = db.get('collection')
 //initialize variables for future 
-let streamList = [];
 
-
-//function to create the map structure to be stored in mongo
-function storeData(arr){
-for(let i=0;  i<1; i++){
-  collection.find({user_id:"137512364"}).then((docs) => {
-    if (docs !== ""){
-      collection.update({user_id: '137512364'}, {$push: {data : 'push something'}})
+//function to store twitch fetch to mongodb 
+function storeData(arr) {
+  for (let i = 0; i < arr.data.length; i++) {
+    collection.find({
+      user_id: arr.data[i].user_id
+    }).then((docs) => {
+      if (docs.length !== 0) {
+        collection.update({
+          user_id: arr.data[i].user_id
+        }, {
+          $push: {
+            data: {
+              'viewer_count': arr.data[i].viewer_count,
+              'title': arr.data[i].title,
+              'date': timestamp
+            }
+          }
+        })
     }
-  })
+       else {
+        let stream = new Object()
+        stream.user_name = arr.data[i].user_name
+        stream.user_id = arr.data[i].user_id
+        stream.data = [{
+          'viewer_count': arr.data[i].viewer_count,
+          'title': arr.data[i].title,
+          'date': timestamp
+        }]
+        collection.insert(stream)
+      .then((docs) => {
+        // docs contains the documents inserted with added **_id** fields
+      }).catch((err) => {
+        // An error happened while inserting
+      }).then(() => db.close())
+
+      }
+    })
+  }
 }
-}
-//iterate through array from twitch api and push object to an array
-// for (let i =0; i<100; i++){
-// //query check if exists
-// let stream = new Object()
-// stream.user_name = arr.data[i].user_name
-// stream.user_id = arr.data[i].user_id
-// //stream.viewer_count = arr[i].viewer_count
-// stream.title = arr.data[i].title
-// stream.data= ["{'viewer_count': " + arr.data[i].viewer_count + "}, {'title': " + arr.data[i].title + "}, {'date': " + new Date() + "}"]
-// console.log("insert")
-// collection.insert(stream)
-// .then((docs) => {
-//   // docs contains the documents inserted with added **_id** fields
-//   // Inserted 3 documents into the document collection
-// }).catch((err) => {
-//   // An error happened while inserting
-// }).then(() => db.close())
-
-// }
-// //set the map to current date as key and the array created as the value
-
-
 
 db.then(() => {
-    console.log('Connected correctly to server')
-  })
+  console.log('Connected correctly to server')
+})
 
-  //fetch twitch api every hour
-  schedule.scheduleJob('0 * * * * *',async function(){
-    
+//fetch twitch api every hour
+schedule.scheduleJob('0 * * * *', async function () {
 
-    let arr = await fetch('https://api.twitch.tv/helix/streams/?first=100', {
+  timestamp = new Date()
+  let arr = await fetch('https://api.twitch.tv/helix/streams/?first=100', {
       method: 'get',
       headers: {
-          'Client-ID': '7zkh4ut355tznqbv75vc1dsflxiu0v'
-      }, 
-  })
-  .then(res => res.json())
-  
-  pagination=arr.pagination.cursor
-
-let arr2 = await fetch('https://api.twitch.tv/helix/streams/?first=100&after=' + pagination, {
-    method: 'get',
-    headers: {
         'Client-ID': '7zkh4ut355tznqbv75vc1dsflxiu0v'
-    }, 
+      },
+    })
+    .then(res => res.json())
+
+  pagination = arr.pagination.cursor
+
+  let arr2 = await fetch('https://api.twitch.tv/helix/streams/?first=100&after=' + pagination, {
+      method: 'get',
+      headers: {
+        'Client-ID': '7zkh4ut355tznqbv75vc1dsflxiu0v'
+      },
+    })
+    .then(res => res.json())
+
+  storeData(arr);
+  storeData(arr2);
+  console.log("Successfully updated " + timestamp)
+});
+
+
+app.get('/trends', async (req, res) => {
+
+  res.send("trends")
 })
-.then(res => res.json())
-
-storeData(arr);
-storeData(arr2);
-    });
-
-
-
-  app.get('/update', async (req, res) => {
-  })
 
 app.get('/data', function (req, res) {
-    console.log(collection.find({}).then((docs) => {}))
-    res.send("get data")
-  })
+  console.log(collection.find({}).then((docs) => {}))
+  res.send("get data")
+})
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+app.listen(port, () => console.log(`Gathering data on port ${port}...`))
