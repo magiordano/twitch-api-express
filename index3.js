@@ -10,53 +10,60 @@ db.then(() => {
     console.log('Connected correctly to server')
   })
   
-collection = db.get('finaltest');
+collection = db.get('finaltest-4');
 
-
-function storeData(arr) {
-  for (let i = 0; i < arr.data.length; i++) {
-    collection.find({
-      user_id: arr.data[i].user_id
-    }).then((docs) => {
-      if (docs.length !== 0) {
-        collection.update({
-          user_id: arr.data[i].user_id
-        }, {
-          $push: {
-            data: {
-              'viewer_count': arr.data[i].viewer_count,
-              'title': arr.data[i].title,
-              'date': timestamp
+ function storeData(arr) {
+  for (let i = 0; i < arr.length; i++) {
+    setTimeout(function(){
+      console.log(arr.length);
+      collection.find({
+        user_id: arr[i].user_id
+      }).then((docs) => {
+        if (docs.length !== 0) {
+          collection.update({
+            user_id: arr[i].user_id
+          }, {
+            $push: {
+              data: {
+                'viewer_count': arr[i].viewer_count,
+                'game_id': arr[i].game_id,
+                'title': arr[i].title,  
+                'started_at': arr[i].started_at,
+                'date': timestamp
+              }
             }
-          }
-        })
-    }
-       else {
-        let stream = new Object()
-        stream.user_name = arr.data[i].user_name
-        stream.user_id = arr.data[i].user_id
-        stream.data = [{
-          'viewer_count': arr.data[i].viewer_count,
-          'title': arr.data[i].title,
-          'date': timestamp
-        }]
-        collection.insert(stream)
-      .then((docs) => {
-        // docs contains the documents inserted with added **_id** fields
-      }).catch((err) => {
-        // An error happened while inserting
-      }).then(() => db.close())
-
+          })
       }
-    })
+         else {
+          let stream = new Object()
+          stream.user_name = arr[i].user_name
+          stream.user_id = arr[i].user_id
+          stream.data = [{
+            'viewer_count': arr[i].viewer_count,
+            'game_id': arr[i].game_id,
+            'title': arr[i].title,
+            'started_at': arr[i].started_at,
+            'date': timestamp
+          }]
+        //  newEntry.push(stream)
+        collection.insert(stream)
+        .then((docs) => {
+          // docs contains the documents inserted with added **_id** fields
+        }).catch((err) => {
+          // An error happened while inserting
+        }).then(() => db.close())
+        }
+      })
+    },i * 1000);
   }
+
 }
 
 app.get('/',async (req, res) =>{
 
   
  //await collection.find({user_id: '25236843'}).then((docs) => {
-  await collection.find({"data.date": {"$lt": new Date(2019, 5, 5)}}).then((docs) => {
+   collection.find({"data.date": {"$lt": new Date(2019, 5, 5)}}).then((docs) => {
   //  await collection.find({"data.viewer_count": 48092}).then((docs) => {
       console.log(docs)
       res.send(docs)
@@ -86,10 +93,10 @@ app.get('/',async (req, res) =>{
         },
       })
       .then(res => res.json())
-  
-    storeData(arr);
-    storeData(arr2);
-     
+      let combine = arr.data.concat(arr2.data)
+      //combine both arr.data
+    storeData(combine);
+
      })
 
 
