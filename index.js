@@ -34,6 +34,10 @@ collection = db.get('collection');
               }
             }
           })
+          .then((docs) => {
+        }).catch((err) => {
+          // An error happened while inserting
+        }).then(() => db.close())
       }
          else {
           let stream = new Object()
