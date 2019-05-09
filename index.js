@@ -4,14 +4,8 @@ const port = 5000
 const monk = require('monk')
 const fetch = require('node-fetch');
 const url = 'mongodb://mag:3VZsQPNVkZ8aIGSc@cluster0-shard-00-00-z1he2.mongodb.net:27017,cluster0-shard-00-01-z1he2.mongodb.net:27017,cluster0-shard-00-02-z1he2.mongodb.net:27017/twitch_users?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin&retryWrites=true'
-const db = monk(url);
-var schedule = require('node-schedule');
 
-db.then(() => {
-    console.log('Connected correctly to server')
-  })
-  
-collection = db.get('collection');
+var schedule = require('node-schedule');
 
  function storeData(arr) {
   for (let i = 0; i < arr.length; i++) {
@@ -78,6 +72,8 @@ app.get('/',async (req, res) =>{
 
 
   schedule.scheduleJob('0 * * * *', async function () {
+    const db = monk(url);
+    collection = db.get('collection');
     timestamp = new Date()
     
     let arr = await fetch('https://api.twitch.tv/helix/streams/?first=100', {
@@ -99,7 +95,7 @@ app.get('/',async (req, res) =>{
       .then(res => res.json())
       let combine = arr.data.concat(arr2.data)
       //combine both arr.data
-    storeData(combine);
+    storeData(combine).then(() => db.close())
     
      })
 
