@@ -7,6 +7,13 @@ const url = 'mongodb://mag:3VZsQPNVkZ8aIGSc@cluster0-shard-00-00-z1he2.mongodb.n
 
 var schedule = require('node-schedule');
 
+
+function getAverage(arr, newViews){
+  let average = arr.reduce((a,b)=> a+b)
+  average += newViews
+  average = Math.round(average / (arr.length+ 1))
+  return average
+}
  function storeData(arr) {
   for (let i = 0; i < arr.length; i++) {
     setTimeout(function(){
@@ -15,6 +22,8 @@ var schedule = require('node-schedule');
         user_id: arr[i].user_id
       }).then((docs) => {
         if (docs.length !== 0) {
+          console.log(docs);
+          let newAverage = getAverage(docs[0].data.map((e) => e.viewer_count), arr[i].viewer_count)
           collection.update({
             user_id: arr[i].user_id
           }, {
@@ -26,6 +35,9 @@ var schedule = require('node-schedule');
                 'started_at': arr[i].started_at,
                 'date': timestamp
               }
+            },
+            $set:{
+              'average_viewers': newAverage
             }
           })
           .then((docs) => {
@@ -37,6 +49,7 @@ var schedule = require('node-schedule');
           let stream = new Object()
           stream.user_name = arr[i].user_name
           stream.user_id = arr[i].user_id
+          stream.average_viewers = arr[i].viewer_count
           stream.data = [{
             'viewer_count': arr[i].viewer_count,
             'game_id': arr[i].game_id,
