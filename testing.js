@@ -21,7 +21,6 @@ function getAverage(arr, newViews){
         user_id: arr[i].user_id
       }).then((docs) => {
         if (docs.length !== 0) {
-          console.log(docs);
           let newAverage = getAverage(docs[0].data.map((e) => e.viewer_count), arr[i].viewer_count)
           collection.update({
             user_id: arr[i].user_id
