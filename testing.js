@@ -1,20 +1,18 @@
 const express = require('express')
 const app = express()
-const port = 5000
+const port = 6000
 const monk = require('monk')
 const fetch = require('node-fetch');
 const url = 'mongodb://mag:3VZsQPNVkZ8aIGSc@cluster0-shard-00-00-z1he2.mongodb.net:27017,cluster0-shard-00-01-z1he2.mongodb.net:27017,cluster0-shard-00-02-z1he2.mongodb.net:27017/twitch_users?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin&retryWrites=true'
-
 var schedule = require('node-schedule');
 
 
 function getAverage(arr, newViews){
-  let temp = arr.reduce((a,b)=> a+b)
-  temp += newViews
-  temp = Math.round(temp / (arr.length+ 1))
-  console.log(temp)
+  let average = arr.reduce((a,b)=> a+b)
+  average += newViews
+  average = Math.round(average / (arr.length+ 1))
+  return average
 }
-
  function storeData(arr) {
   for (let i = 0; i < arr.length; i++) {
     setTimeout(function(){
@@ -23,30 +21,56 @@ function getAverage(arr, newViews){
         user_id: arr[i].user_id
       }).then((docs) => {
         if (docs.length !== 0) {
-         console.log(docs);
+          console.log(docs);
           let newAverage = getAverage(docs[0].data.map((e) => e.viewer_count), arr[i].viewer_count)
+          collection.update({
+            user_id: arr[i].user_id
+          }, {
+            $push: {
+              data: {
+                'viewer_count': arr[i].viewer_count,
+                'game_id': arr[i].game_id,
+                'title': arr[i].title,  
+                'started_at': arr[i].started_at,
+                'date': timestamp
+              }
+            },
+            $set:{
+              'average_viewers': newAverage
+            }
+          })
+          .then((docs) => {
+        }).catch((err) => {
+          // An error happened while inserting
+        }).then(() => db.close())
       }
-
+         else {
+          let stream = new Object()
+          stream.user_name = arr[i].user_name
+          stream.user_id = arr[i].user_id
+          stream.average_viewers = arr[i].viewer_count
+          stream.data = [{
+            'viewer_count': arr[i].viewer_count,
+            'game_id': arr[i].game_id,
+            'title': arr[i].title,
+            'started_at': arr[i].started_at,
+            'date': timestamp
+          }]
+        //  newEntry.push(stream)
+        collection.insert(stream)
+        .then((docs) => {
+          // docs contains the documents inserted with added **_id** fields
+        }).catch((err) => {
+          // An error happened while inserting
+        }).then(() => db.close())
+        }
       })
     },i * 1000);
   }
+  db.close()
 }
 
-app.get('/',async (req, res) =>{
-
-  
- //await collection.find({user_id: '25236843'}).then((docs) => {
-   collection.find({"data.date": {"$lt": new Date(2019, 5, 5)}}).then((docs) => {
-  //  await collection.find({"data.viewer_count": 48092}).then((docs) => {
-      console.log(docs)
-      res.send(docs)
-    })
-
-  
-  })
-
-
-  schedule.scheduleJob('0 * * * * *', async function () {
+  schedule.scheduleJob('0 * * * *', async function () {
     const db = monk(url);
     collection = db.get('collection');
     timestamp = new Date()
@@ -70,7 +94,7 @@ app.get('/',async (req, res) =>{
       .then(res => res.json())
       let combine = arr.data.concat(arr2.data)
       //combine both arr.data
-    storeData(combine)
+    storeData(combine).then(() => db.close())
     
      })
 

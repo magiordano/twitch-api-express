@@ -68,6 +68,7 @@ function getAverage(arr, newViews){
       })
     },i * 1000);
   }
+  db.close()
 }
 
 app.get('/',async (req, res) =>{
