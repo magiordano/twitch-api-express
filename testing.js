@@ -6,6 +6,11 @@ const fetch = require('node-fetch');
 const url = 'mongodb://mag:3VZsQPNVkZ8aIGSc@cluster0-shard-00-00-z1he2.mongodb.net:27017,cluster0-shard-00-01-z1he2.mongodb.net:27017,cluster0-shard-00-02-z1he2.mongodb.net:27017/twitch_users?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin&retryWrites=true'
 var schedule = require('node-schedule');
 
+const db = monk(url);
+db.then(() => {
+  console.log('Connected correctly to server')
+})
+collection = db.get('collection');
 
 function getAverage(arr, newViews){
   let average = arr.reduce((a,b)=> a+b)
@@ -70,8 +75,6 @@ function getAverage(arr, newViews){
 }
 
   schedule.scheduleJob('0 * * * *', async function () {
-    const db = monk(url);
-    collection = db.get('collection');
     timestamp = new Date()
     
     let arr = await fetch('https://api.twitch.tv/helix/streams/?first=100', {
