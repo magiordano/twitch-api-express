@@ -101,5 +101,14 @@ function getAverage(arr, newViews){
     
      })
 
+     schedule.scheduleJob('* 0 * * *', async function () {
+
+      await fetch('http://magiordano.com:5000/removeDate', {
+        method: 'get',
+      })
+
+         })
+     
+    
 
   app.listen(port, () => console.log(`Gathering data on port ${port}...`))
